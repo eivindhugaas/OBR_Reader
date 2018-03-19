@@ -10,6 +10,7 @@ import sys
 from os import listdir
 from os.path import isfile, join
 from scipy.signal import savgol_filter
+import pickle
 
 class readers:
     def __init__(self):
@@ -103,7 +104,7 @@ class readers:
                         ysg = savgol_filter(y, 21, 3)
                         smoothed=ysg
                     elif algorithm=='threshold':
-                        Threshold=smooth.thresholding_algo(np.array(y), lag=5, threshold=25, influence=0.)
+                        Threshold=smooth.thresholding_algo(np.array(y), lag=7, threshold=41, influence=0.)
                         smoothed=Threshold["avgFilter"]                                                             
                     break
             ResultSmooth.append(smoothed)
@@ -204,7 +205,27 @@ class readers:
         #print(StrainAdjusted)
         return [Length,strainequal],Fibernumbers,Positionswithmeasurement
 
-    
+    def Writer(self,Result=[],FiberNumbers=[],Filename='Jahman'):
+        y=1
+        filename="Output_"+Filename+".txt"
+        thefile = open(filename, 'w')
+        
+        thefile.write("Length\t" %FiberNumbers) 
+        for fiber in FiberNumbers:
+            thefile.write("Fiber %s\t"%int(fiber))  
+        thefile.write("\n")
+        for i in range(len(Result[1][0])):
+            Lengthtowrite=Result[0][0][i]
+            thefile.write("%.4f"%Lengthtowrite)
+            thefile.write("\t")
+            for column in Result[1]:
+                thefile.write("%.6f"%column[i])
+                thefile.write("\t")
+            thefile.write("\n")
+            
+                
+        
+
 class smooth:
     def thresholding_algo(y, lag, threshold, influence):
         signals = np.zeros(len(y))
