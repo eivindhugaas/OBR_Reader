@@ -11,7 +11,7 @@ from os import listdir
 from os.path import isfile, join
 from scipy.signal import savgol_filter
 import pickle
-
+plt.rcParams.update({'font.size': 30})
 class readers:
     def __init__(self):
         Check="OK"
@@ -20,20 +20,24 @@ class readers:
         '''
         Takes one _lower.txt file, reads it and returns the length and strain as two arrays in one array.
         '''
+        if isfile(location):
+            f  = open(location, 'r') 
+            lines=f.readlines()
+            length=[]
+            strain=[]
+            startappending=False
+            for i in range(len(lines)):
+                if startappending:                                       #skips all text at start of file
+                    length.append(float(lines[i].split('\t')[0]))        
+                    strain.append(float(lines[i].split('\t')[1]))    
+                if lines[i]=='Length (m)\tStrain (microstrain)\t\n':
+                    startappending=True             
+            f.close()        
+            result=[length,strain]
         
-        f  = open(location, 'r') 
-        lines=f.readlines()
-        length=[]
-        strain=[]
-        startappending=False
-        for i in range(len(lines)):
-            if startappending:                                       #skips all text at start of file
-                length.append(float(lines[i].split('\t')[0]))        
-                strain.append(float(lines[i].split('\t')[1]))    
-            if lines[i]=='Length (mm)\tStrain (microstrain)\t\n':
-                startappending=True             
-        f.close()        
-        result=[length,strain]
+        else:
+            print('file %s not found, return empty result array' % location)
+            result=[[],[]]
 
         return result
     
@@ -53,8 +57,10 @@ class readers:
             plt.plot(Result[0][0], Result[1][0])            
         ax = fig.add_subplot(111)
         fig.subplots_adjust(top=0.85)
+       
         ax.set_xlabel('Length')
         ax.set_ylabel('Strain')
+
         
         plt.show()
         
@@ -70,14 +76,17 @@ class readers:
         X,Y=np.meshgrid(x,y)
         Z=(np.array(z))
 
-        #plt.contour(X, Y, Z, colors='black')
+        plt.contourf(X, Y, Z)
+        plt.colorbar() 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.plot_wireframe(X, Y, Z)
         plt.show()
+        
+
          
     def ContourPlotter(self,Result=[[0.0,1.1,2.2],[1000.3,1500.0,2000.1]],FiberNumbers=[],FiberPositions=[]):
-        plt.style.use('seaborn-white')
+        plt.style.use('classic')
         y=sort(FiberPositions) # Fiber position
         z = [x for _,x in sorted(zip(FiberPositions,Result[1]))]
         x=Result[0][0]# Length
@@ -89,7 +98,7 @@ class readers:
         #fig = plt.figure()
         #ax = fig.add_subplot(111, projection='3d')
         #ax.plot_wireframe(X, Y, Z)
-        plt.contourf(X, Y, Z, 20, cmap='RdGy')
+        plt.contourf(X, Y, Z, 1000)#, cmap='RdGy')
         plt.colorbar();        
         plt.show()
         
@@ -104,7 +113,7 @@ class readers:
                         ysg = savgol_filter(y, 21, 3)
                         smoothed=ysg
                     elif algorithm=='threshold':
-                        Threshold=smooth.thresholding_algo(np.array(y), lag=7, threshold=41, influence=0.)
+                        Threshold=smooth.thresholding_algo(np.array(y), lag=3, threshold=40000000, influence=0.)
                         smoothed=Threshold["avgFilter"]                                                             
                     break
             ResultSmooth.append(smoothed)
@@ -210,9 +219,9 @@ class readers:
         filename="Output_"+Filename+".txt"
         thefile = open(filename, 'w')
         
-        thefile.write("Length\t" %FiberNumbers) 
+        thefile.write("Length (mm) \t" %FiberNumbers) 
         for fiber in FiberNumbers:
-            thefile.write("Fiber %s\t"%int(fiber))  
+            thefile.write("Fiber %s (microstrain)\t"%int(fiber))  
         thefile.write("\n")
         for i in range(len(Result[1][0])):
             Lengthtowrite=Result[0][0][i]
@@ -223,9 +232,6 @@ class readers:
                 thefile.write("\t")
             thefile.write("\n")
             
-                
-        
-
 class smooth:
     def thresholding_algo(y, lag, threshold, influence):
         signals = np.zeros(len(y))

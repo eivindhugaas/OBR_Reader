@@ -1,0 +1,6 @@
+Fiber number:	Reference length(mm):	Reference Position(mm):
+1	16379.0000	0.0
+2	16407.0000	1.0
+3	16610.0000	2.0
+4	16610.0000	4.0
+
