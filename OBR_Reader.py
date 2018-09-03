@@ -10,13 +10,13 @@ import os
 
 startdistance=0.0 #mm
 length=120.0 #mm
-key='Cyan'
+key='E10_fibre 1_'
 rdr=rdr()
 #Result=rdr.SeriesReader(location=r'C:\Users\eivinhug\NTNU\PhD\Testing\Laminate_D\OBR_Files\D01_Temsion_07062018',key=key,startdistance=startdistance,length=length)
-path=r'C:\Users\eivinhug\NTNU\PhD\Testing\Laminate_D\OBR_Files\D902_Tension_06062018\2_16_running_ref\ts'
-start=2
-stop=16
-prefix='Cyan_'
+path=r'C:\Users\eivinhug\OneDrive - NTNU\PhD_Backup\NTNU\PhD\Testing\Laminate_E\OBR_Files\E01_FatigueTest_2_28082018\Fiber_1_14_23__RunningRef'
+start=15
+stop=23
+prefix='E01_fibre 1_'
 filename="Output_"+str(prefix)+str(start)+"_"+str(stop)+".txt"
 
 print(path+filename)

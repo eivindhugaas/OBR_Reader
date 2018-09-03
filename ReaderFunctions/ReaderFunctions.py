@@ -41,6 +41,74 @@ class readers:
 
         return result
     
+    def Output_Reader(self,location='C:\file\you\wish\to\open.txt'):
+        '''
+        Takes one Output txt file, reads it and returns the length and strain as arrays in one array.
+        '''
+        if isfile(location):
+            f  = open(location, 'r') 
+            lines=f.readlines()
+            lengthandstrain=[]
+            lengthandstrains=[]
+            print(lines)
+            for t in range(len(lines[1].split('\t'))-1):
+                startappending=False
+                for i in range(len(lines)):
+                    if startappending:    #skips all text at start of file
+                        print(lines[i].split('\t')[t])
+                        lengthandstrain.append(float(lines[i].split('\t')[t]))           
+                    if 'Length' in lines[i]:
+                        startappending=True  
+                lengthandstrains.append(lengthandstrain)
+                lengthandstrain=[]
+            f.close()        
+            result=lengthandstrains
+        
+        else:
+            print('file %s not found, return empty result array' % location)
+            result=[[],[]]
+
+        return result    
+    
+    def Output_Reader_pick_Measurement(self,location='C:\file\you\wish\to\open.txt',Measurement=10000001):
+        '''
+        Takes one Output txt file, reads it and returns the length and strain as arrays in one array.
+        '''
+        
+        if isfile(location):
+            f  = open(location, 'r') 
+            lines=f.readlines()
+            lengthandstrain=[]
+            lengthandstrains=[]
+            
+            TopString=lines[0].split('\t')
+            for n in range(len(TopString)):
+                if TopString[n]=='Measurement %s (microstrain)'%Measurement:
+                    measureindex=n
+                    break
+            
+            for t in range(len(lines[1].split('\t'))-1):
+                startappending=False
+                for i in range(len(lines)):
+                    if startappending:    #skips all text at start of file
+                        lengthandstrain.append(float(lines[i].split('\t')[t]))           
+                    if 'Length' in lines[i]:
+                        startappending=True  
+                lengthandstrain=lengthandstrain        
+                lengthandstrains.append(lengthandstrain)
+                lengthandstrain=[]
+            f.close()        
+            result=[lengthandstrains[0],lengthandstrains[n]]
+
+        
+        else:
+            print('file %s not found, return empty result array' % location)
+            result=[[],[]]
+            
+        
+
+        return result      
+    
     def Plotter(self,Result=[[0.0,1.1,2.2],[1000.3,1500.0,2000.1]],FiberNumbers=[]):
         '''
         Plots one series.
