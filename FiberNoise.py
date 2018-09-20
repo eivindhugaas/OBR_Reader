@@ -130,7 +130,7 @@ for i in range(len(smoothn)):
       SuperSmoothStrains.append(SmoothStrains[i])
       Supersmoothn.append(smoothn[i])
 
-plt.plot(SuperSmoothStrains)
+plt.plot(Strain)
 
 smoothslist=[]
 smoothn=Supersmoothn

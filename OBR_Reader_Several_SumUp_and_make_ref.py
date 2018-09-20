@@ -8,8 +8,9 @@ import sys
 from ReaderFunctions.ReaderFunctions import readers as rdr
 import os
 
-key='E01_fibre 1_'
-prefix=key
+startdistance=0.0 #mm
+length=120.0 #mm
+prefix='E01_fibre 1_'
 path=r'C:\Users\eivinhug\OneDrive - NTNU\PhD_Backup\NTNU\PhD\Testing\Laminate_E\OBR_Files\E01_FatigueTest_2_28082018\RAW'
 rdr=rdr()
 
@@ -24,8 +25,6 @@ print(doods)
 PastStrain=doods[1]
 #Result=rdr.SeriesReader(location=r'C:\Users\eivinhug\NTNU\PhD\Testing\Laminate_D\OBR_Files\D01_Temsion_07062018',key=key,startdistance=startdistance,length=length)
 
-
-
 for i in range(0,len(highest_numbers)):
     
     StrainSummed=doods[1]
@@ -38,8 +37,12 @@ for i in range(0,len(highest_numbers)):
     
     thefile = open(os.path.join(path,filename), 'w')
     thefile.write("Length (m) \t") 
+
     for i in range(start,stop+1,1):
         thefile.write("Measurement %s (microstrain)\t"%int(i))  
+        
+
+                
     thefile.write("\n")
     AllStrain=[]
     Strain=[]
@@ -52,6 +55,7 @@ for i in range(0,len(highest_numbers)):
             AllStrain.append(Length)
         Strain=dood[1]
         StrainSummed=[StrainSummed[a]+Strain[a] for a in range(len(Strain))]#[x + y for x, y in zip(Strain,PastStrain)]
+
         AllStrain.append(StrainSummed)
 
     print(AllStrain)
@@ -65,7 +69,23 @@ for i in range(0,len(highest_numbers)):
                 thefile.write("\t")
         thefile.write("\n")    
     
-    
+    for d in range(1,len(AllStrain)):
+        theotherfile=open(os.path.join(path,prefix+str(d+start-1).zfill(4)+'_Lower_summed.txt'), 'w') #extra
+        #theotherfile.write("Length (m) \t") 
+        theotherfile.write("Length (m)	Strain (microstrain)	")            
+        #theotherfile.write("Measurement %s (microstrain)"%int(d+start-1))
+        theotherfile.write("\n")            
+        for t in range(len(Length)-1):
+
+            theotherfile.write("%.6f"%AllStrain[0][t])
+            theotherfile.write("\t")    
+            theotherfile.write("%.6f"%(AllStrain[d][t]+AllStrain[d-1][t]))
+            theotherfile.write("\n")            
+                
+                
+        #thefile.write("\n")    
+        
+        
     #ResultSmooth=rdr.Smoother(Result=Result[0],FiberNumbers=Result[1],Fibersforsmoothing=[9],algorithm='threshold')
     #rdr.Plotter(Result=Result[0],FiberNumbers=Result[1])
     #rdr.Plotter(Result=ResultSmooth,FiberNumbers=Result[1])
