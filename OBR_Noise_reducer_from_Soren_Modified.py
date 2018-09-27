@@ -850,6 +850,10 @@ def plot_tuple(data):
 	plt.scatter(*zip(*testList2))
 	plt.show()		
 
+def SmoothenOverLength(allfilesdict,MeasurementsToSmoothen,allfilesMDiffDictonlyNoise):
+	NotFinished='yes'
+
+
 
 def reduce_noise(infile, outfile, binarynoisefile, other_reference_measurement, previous_measurement, plotfile, maximum_difference_between_points, maximum_difference_for_interpolation, maxallowedstrainincrease):
 	# Say that nr. 5 is the measurement file in question
@@ -946,8 +950,6 @@ def reduce_noise(infile, outfile, binarynoisefile, other_reference_measurement, 
 	third_run_real_data = third_check[0]
 	third_run_outliers = third_check[1]
 	
-
-
 	# Seventh, when using the running reference method to obtain the strain 
 	# data, I need to add up all the different measurements. This means that
 	# if outliers are detected, these can not just be left out, but must be
@@ -1163,263 +1165,350 @@ def main(file_location, name_base, minimum_number, maximum_number, maximum_diffe
 	move_files(file_location)
 
 
-# Given a list of measurements, typically at different loadlevels such as 13,23,33... then give give a Strain for each measurement and length. 
+
 
 def Difference_over_cycles(ListofMeasurements,Length,Allfilesdict):
-	DiffList=[]
-	Strain=[]
+	
+	#Given a list of measurements, typically at different loadlevels such as 13,23,33... then give give a Strain for each measurement on a given length given the full measurementdicitonary. 
+	
+	StrainAtLength=[]
 	for measurement in ListofMeasurements:
 		measurementdict=Allfilesdict[measurement]
-		Strain.append(measurementdict[find_nearest(measurementdict, Length)])
+		StrainAtLength.append(measurementdict[find_nearest(measurementdict, Length)])
+	
+	return StrainAtLength
+
+
+def Noise_Over_One_Measurement(NumberofCycles,StartOfCycles,EndOfCycles,file_location,name_base,MaxDifference):
+
+	allfilesMDiffDict={}
+	allfilesMDiffDictNoise={}
+	allfilesMDiffDictonlyNoise={}
+	
+	for i in range(NumberOfCycles):	
 		
-	#plt.plot(Strain)
-	#plt.show()
-	
-	return Strain
-
-# When this program is called on the console, main() is executed.
-# See comment to main() why I do here more then just executing main().
-if __name__ == '__main__':
-	#print """
-#It is assumed that Filesorter.py was used to sort the raw analysis files.
-#That means that the following folders exist:
-#> Noise_reduced_after_manual_correction
-#> Noise_reduced_before_manual_correction
-#> PNG
-#> RAW
-#Also it is assumed that the raw analysis files are in the "RAW" folder.
-
-#If this is not the case all files will still be noise reduced, but can not be 
-#moved to the correct folders.\n
-#"""
-	highest_numbers=np.arange(13,174,10)
-	previous_numbers=np.arange(13-1,174-1,10)
-	start_heres=np.arange(5,166,10)
-	numberofmeasurements=9
-
-	zero_file=int(4)
-	file_location = r'C:\Users\eivinhug\OneDrive - NTNU\PhD_Backup\NTNU\PhD\Testing\Laminate_E\OBR_Files\E01_FatigueTest_2_28082018\RAW' #raw_input('Raw analysis files location (e.g. C:\OBR\Sample_23\RAW): ')
-	name_base = 'E01_fibre 1_' # raw_input('Analysis files name base (e.g. 2016-12-13_sample_23017_): ')	
-
-	#The script identifies what can be flat sections, the differential threshold is set by maximum_difference_between_points.
-
-	maximum_difference_between_points = 10000  #300
-	
-	# The script will check if points that were assumed to be outliers, because these were
-	# not in a flat section, probably are on the line between the start- and
-	# end-point between two flat sections (vulgo: in the gap).
-	# The points can "jitter" a bit around the line in y-direction.
-	# How big this "jittering" can be is determined by 
-	# maximum_difference_for_interpolation.	
-	
-	maximum_difference_for_interpolation = 10000 #500
-	
-	maxallowedstrainincrease = 100000
-	allfilesdict={}
-	allfilesDispDiffDict={}
-	allfilesDispDiffDictNoise={}
-	allsummedfilesdict={}
-	allpreviousfilesdict={}
-	differencedict={}
-	for i in range(0,len(highest_numbers)):	
+		#This loop goes thorugh one load ramping at the time and makes noise files based on the current measurement.
 		
-		maximum_number = int(highest_numbers[i]) #int(raw_input('Highest file number: '))
-		minimum_number = int(start_heres[i])
+		maximum_number = int(EndOfCycles[i])     #Measurement from end of load ramping
+		minimum_number = int(StartOfCycles[i])   #Measurement from start of load ramping
 		
 		for d in range(minimum_number,maximum_number+1):
-	
+			
+			#This loop goes through all measurements in one ramping
 	
 			infile=os.path.join(file_location,name_base+(str(d)).zfill(4)+'_Lower.txt')
 			pastinfile=os.path.join(file_location,name_base+(str(d-1)).zfill(4)+'_Lower.txt')
 			
-			onefiledict=data_from_one_file(infile)
-			pastfiledict=data_from_one_file(pastinfile)
+			onefiledict=data_from_one_file(infile)      	#Current file as a dictionary with length: strain sa entries. 
+			pastfiledict=data_from_one_file(pastinfile) 	#The past file as the same.
+			
 			StrainDiffDict={}
 			StrainDiffNoiseDict={}
-			for key, value in onefiledict.items():
-				StrainDiff=value-pastfiledict[key]
-				StrainDiffDict[key]=StrainDiff
-				
-				if StrainDiff>1000.:
-					StrainDiffNoiseDict[key]=1.0
+			StrainDiffonlyNoiseDict={}
+			
+			for key, value in onefiledict.items():     	#Goes through the current file and picks out the key (Length) and the value (Strain).
+
+				if abs(value)>MaxDifference:          	#Makes a dictionary of binary noise along the length.
+					StrainDiffNoiseDict[key]=1.0 
+					StrainDiffonlyNoiseDict[key]=1.0
+					
 				else:
 					StrainDiffNoiseDict[key]=0.0				
-				
-			allfilesDispDiffDict[d]= StrainDiffDict
-			allfilesDispDiffDictNoise[d]=StrainDiffNoiseDict			
-			allfilesdict[d] = onefiledict
 			
-	zerofile=os.path.join(file_location,name_base+(str(zero_file)).zfill(4)+'_Lower.txt')	
-	zerofiledict=data_from_one_file(zerofile)
-	allfilesNDiffDict={}
-	allfilesNDiffDictNoise={}
-	for d in range(numberofmeasurements):
-		#print(d)
-		for a in start_heres:
+			allfilesMDiffDict[d]= StrainDiffDict          #Actual difference
+			allfilesMDiffDictNoise[d]=StrainDiffNoiseDict #Binary difference	
+			allfilesMDiffDictonlyNoise[d]=StrainDiffonlyNoiseDict #All measurements with only noise.
+			
+	return allfilesMDiffDict, allfilesMDiffDictNoise, allfilesMDiffDictonlyNoise
+
+
+def Noise_Over_Load_Steps(NumberofCycles,StartOfCycles,EndOfCycles,file_location,name_base,MaxDifferenceBetweenLoadSteps):
+
+	allfilesDispDiffDict={}
+	allfilesDispDiffDictNoise={}
+	allfilesDispDiffDictonlyNoise={}
+	
+	for i in range(NumberOfCycles):	
+		
+		#This loop goes thorugh one load ramping at the time and makes noise files based on the current measurement.
+		
+		maximum_number = int(EndOfCycles[i]) #Measurement from end of load ramping
+		minimum_number = int(StartOfCycles[i])     #Measurement from start of load ramping
+		
+		for d in range(minimum_number,maximum_number+1):
+			
+			#This loop goes through all measurements in one ramping
+	
+			infile=os.path.join(file_location,name_base+(str(d)).zfill(4)+'_Lower.txt')
+			pastinfile=os.path.join(file_location,name_base+(str(d-1)).zfill(4)+'_Lower.txt')
+			
+			onefiledict=data_from_one_file(infile)      	#Current file as a dictionary with length: strain sa entries. 
+			pastfiledict=data_from_one_file(pastinfile) 	#The past file as the same.
+			
 			StrainDiffDict={}
 			StrainDiffNoiseDict={}
-			num=int(float(d)+float(a))
-			for key, value in allfilesdict[num].items():
-				if a==start_heres[0]:
-					StrainDiff=value-value
-					StrainDiffDict[key]=StrainDiff
+			StrainDiffonlyNoiseDict={}
+			
+			for key, value in onefiledict.items():     	#Goes through the current file and picks out the key (Length) and the value (Strain).
+				StrainDiff=abs(value)-abs(pastfiledict[key]) 	#Establishes the difference from the past file.
+				StrainDiffDict[key]=StrainDiff     	#Appends the difference to a dictionarry equal to the one in the current file. 
+				
+				if StrainDiff>MaxDifferenceBetweenLoadSteps:          	#Makes a dictionary of binary noise along the length.
+					StrainDiffNoiseDict[key]=1.0 
+					StrainDiffonlyNoiseDict[key]=1.0
+					
+				else:
+					StrainDiffNoiseDict[key]=0.0				
+			
+			#Appends the noise files to dictionaries across measurements.
+			
+			allfilesDispDiffDict[d]= StrainDiffDict          #Actual difference
+			allfilesDispDiffDictNoise[d]=StrainDiffNoiseDict #Binary difference	
+			allfilesDispDiffDictonlyNoise[d]=StrainDiffonlyNoiseDict #All measurements with only noise.
+			
+	return allfilesDispDiffDict, allfilesDispDiffDictNoise, allfilesDispDiffDictonlyNoise
+			
 
-				else:
-					StrainDiff=value-allfilesdict[num-numberofmeasurements-1][key]
+
+def Noise_Over_Cycles(NumberofCycles,StartOfCycles,EndOfCycles,file_location,name_base,MaxDifferenceBetweenLoadSteps):
+
+	allfilesNDiffDict={}
+	allfilesNDiffDictNoise={}
+	allfilesNDiffDictonlyNoise={}
+	
+	for d in range(NumberOfLoadSteps):
+		#Goes through each measurement (measurement 1 at 100 cycles and 200 cycles....)
+		for a in StartOfCycles: # takes the startmeasurement at each cycle.
+			StrainDiffDict={}
+			StrainDiffNoiseDict={}
+			StrainDiffonlyNoiseDict={}
+			num=int(float(d)+float(a)) #So its number of measurement (say d=0) and the start measurement (say a is 15)...
+			for key, value in allfilesdict[num].items():
+				if a==StartOfCycles[0]: #If first cycle just floor the difference
+					StrainDiff=value-value 
+					StrainDiffDict[key]=StrainDiff 
+				else: 
+					StrainDiff=abs(value)-abs(allfilesdict[num-NumberOfLoadSteps-1][key])
 					StrainDiffDict[key]=StrainDiff
-				if abs(StrainDiff)>1000.:
+					
+				if StrainDiff>MaxDifferenceBetweenCycles:
 					StrainDiffNoiseDict[key]=1.0
+					StrainDiffonlyNoiseDict[key]=1.0
 				else:
-					StrainDiffNoiseDict[key]=0.0					
+					StrainDiffNoiseDict[key]=0.0	
+					
 				allfilesNDiffDict[num]= StrainDiffDict
 				allfilesNDiffDictNoise[num]=StrainDiffNoiseDict
-	#print(allfilesNDiffDict)		
-	#print(allfilesDispDiffDict)
-	for i in range(0,len(highest_numbers)):	
+				allfilesNDiffDictonlyNoise[num]=StrainDiffonlyNoiseDict
+				
+	return allfilesNDiffDict, allfilesNDiffDictNoise, allfilesNDiffDictonlyNoise
+
+def Measurement_Dictionary(NumberofCycles,StartOfCycles,EndOfCycles,file_location,name_base,MaxDifferenceBetweenLoadSteps):
+
+	allfilesdict={}
+	
+	for i in range(NumberOfCycles):	
 		
-		maximum_number = int(highest_numbers[i]) #int(raw_input('Highest file number: '))
-		minimum_number = int(start_heres[i])
+		#This loop goes thorugh one load ramping at the time and makes noise files based on the current measurement.
+		
+		maximum_number = int(EndOfCycles[i]) #Measurement from end of load ramping
+		minimum_number = int(StartOfCycles[i])     #Measurement from start of load ramping
+		
+		for d in range(minimum_number,maximum_number+1):
+			
+			#This loop goes through all measurements in one ramping
+			
+			infile=os.path.join(file_location,name_base+(str(d)).zfill(4)+'_Lower.txt')
+			onefiledict=data_from_one_file(infile)      	#Current file as a dictionary with length: strain sa entries. 
+			allfilesdict[d] = onefiledict			 #Measurement file
+	
+	return allfilesdict
+
+def Summed_Measurement_Dictionary(StartOfCycles,EndOfCycles,file_location,name_base):
+	allsummedfilesdict={}
+	
+	for i in range(0,len(EndOfCycles)):	
+		#Appends the summed strain into a dicitonary (note; '_Lower_summed.txt' in infile)
+		maximum_number = int(EndOfCycles[i])
+		minimum_number = int(StartOfCycles[i])
 		
 		for d in range(minimum_number,maximum_number+1):
 	
 			infile=os.path.join(file_location,name_base+(str(d)).zfill(4)+'_Lower_summed.txt')
 			
 			onefiledict=data_from_one_file(infile)
-			allsummedfilesdict[d] = onefiledict
+			allsummedfilesdict[d] = onefiledict	
 	
-	#print(allfilesdict)
+	return allsummedfilesdict
+
+def Combined_Noise(allfilesNDiffDictonlyNoise,allfilesDispDiffDictonlyNoise,allfilesMDiffDictonlyNoise):
 	
 	
+
+
+	BinaryNoiseDict={}
+	for key, value in allfilesNDiffDictonlyNoise.items():
+		if key in allfilesDispDiffDictonlyNoise: #Check if its noise in measurement in both noisedicts
+			Mkey=key
+
+			Dictionary=value
+			BinaryNoiseDictatM={}
+			for key, value in Dictionary.items(): #Check if its noise in length in both noisedicts
+				if key in allfilesDispDiffDictonlyNoise[Mkey]:
+					BinaryNoiseDictatM[key]=value
+		BinaryNoiseDict[Mkey]=BinaryNoiseDictatM
 	
-	zerofile=os.path.join(file_location,name_base+(str(zero_file)).zfill(4)+'_Lower.txt')
-	Datafromzerofile=data_from_one_file(zerofile)
-	TypicalLengthList=transform_dict_to_list(Datafromzerofile)
+	print(BinaryNoiseDict[13])	
 	
-	StrainatLength=Difference_over_cycles(highest_numbers,17.0,allfilesdict)
-	DispDiffMeshStrain=[]
-	NDiffMeshStrain=[]
-	NDiffNoiseMeshStrain=[]
-	DispDiffNoiseMeshStrain=[]
+	#return(BinaryNoiseDict)
+
+	BinaryNoiseDictUpdated=deepcopy(BinaryNoiseDict)
+	
+	for key, value in allfilesMDiffDictonlyNoise.items():
+		
+		DictToBeUpdated=BinaryNoiseDict[key]
+		
+		DictToBeUpdated.update(value)
+		
+		BinaryNoiseDictUpdated[key]=DictToBeUpdated
+		
+	print(BinaryNoiseDictUpdated[13])	
+	return BinaryNoiseDictUpdated
+
+def Reduce_Noise(BinaryNoiseDict,FirstMeasurementinFirstCycle,allfilesdict):
+
+	allfilesnoisefree=deepcopy(allfilesdict)
+	allfileswithnoise=deepcopy(allfilesdict)	
+
+	for key in sorted(BinaryNoiseDict.keys()):#  BinaryNoiseDict.items():
+		Mkey=key
+		
+		Dictionary=BinaryNoiseDict[Mkey]
+		for Lkey, value in Dictionary.items(): #Check if its noise in length in both noisedicts
+			for i in [10,20,30,40,50,60,70,80,90,100,110,120,130,140,160,170,180]:
+				if Mkey-i>FirstMeasurementinFirstCycle:
+					if Lkey not in BinaryNoiseDict[Mkey-i]:
+						noisefreereading=allfilesdict[Mkey-i][Lkey]
+						allfilesnoisefree[Mkey][Lkey]=noisefreereading
+
+						break
+	return allfilesnoisefree,allfileswithnoise
+
+def PrepareDictionaryforPlotting(TypicalLengthList,PlotCycles,MeasurementDictionary):
+	
+	MeasurementsAtPlotCycles=[]
 	PlotLength=[]
 	
 	for point in TypicalLengthList:
-		Length=point[0]
-		StrainatLength=Difference_over_cycles(highest_numbers,Length,allfilesdict)
-		data=[]
-		n=0.0
-		for Strain in StrainatLength:
-			n=n+1.0
-			data.append((n,Strain))
 		
 		Length=point[0]
-		DispDiffStrainatLength=Difference_over_cycles(highest_numbers,Length,allfilesDispDiffDict)
-		#print(DispDiffStrainatLength)
-		DispDiffData=[]
-		n=0
-		for Strain in DispDiffStrainatLength:
-			n=n+1.0
-			DispDiffData.append((n,Strain))		
-			
-		Length=point[0]
-		NDiffStrainatLength=Difference_over_cycles(highest_numbers,Length,allfilesNDiffDict)
-		NDiffData=[]
-		n=0
-		for Strain in NDiffStrainatLength:
-			n=n+1.0
-			NDiffData.append((n,Strain))	
-			
-		Length=point[0]
-		NDiffNoiseStrainatLength=Difference_over_cycles(highest_numbers,Length,allfilesNDiffDictNoise) #
-		NDiffNoiseData=[]
-		n=0
-		for Strain in NDiffNoiseStrainatLength:
-			n=n+1.0
-			NDiffNoiseData.append((n,Strain))
-		
-		Length=point[0]
-		DispDiffNoiseStrainatLength=Difference_over_cycles(highest_numbers,Length,allfilesDispDiffDictNoise) #
-		DispDiffNoiseData=[]
-		n=0
-		for Strain in DispDiffNoiseStrainatLength:
-			n=n+1.0
-			DispDiffNoiseData.append((n,Strain))		
-		
-		Length=point[0]
-		SummedStrainatLength=Difference_over_cycles(highest_numbers,Length,allsummedfilesdict)
-		SummedData=[]
-		n=0
-		for Strain in SummedStrainatLength:
-			n=n+1.0
-			SummedData.append((n,Strain))		
-
-		
-		DispDiffMeshStrain.append(DispDiffStrainatLength)
-		NDiffMeshStrain.append(NDiffStrainatLength)
-		NDiffNoiseMeshStrain.append(NDiffNoiseStrainatLength)
-		DispDiffNoiseMeshStrain.append(DispDiffNoiseStrainatLength)
+		StrainAtLength=Difference_over_cycles(PlotCycles,Length,MeasurementDictionary)
+		MeasurementsAtPlotCycles.append(StrainAtLength)
 		PlotLength.append(Length)
+	
+	return MeasurementsAtPlotCycles, PlotLength
 
+if __name__ == '__main__':
+	
+	'''
+	------------------------------------------------------------------------------ Start Input --------------------------------------------------------------------------------------------
+	'''
+	
+	NumberOfCycles=17
+	NumberOfLoadSteps=9 #Say 4 is zeroreading and 5 is first and 13 is last, then: 5 = 1 cycle no. 1, 6 = cycle no. 2, 7 = cycle no. 3 ,...., 13 = cycle no. 9
+	FirstMeasurementinFirstCycle=5
+	LastMeasurementInFirstCycle=13
+	zero_file=4
+	GapMeasurement=1
+	
+	PlotCycle=10
+	
+	MaxDifferenceBetweenCycles=250
+	MaxDifferenceBetweenLoadSteps=250
+	MaxDifference=3000
+	
+	file_location = r'C:\Users\eivinhug\OneDrive - NTNU\PhD\Testing\Laminate_E\OBR_Files\E01_Fatigue_2_28082018\RAW' 
+	name_base = 'E01_fibre 1_' 	
+	
+	'''
+	------------------------------------------------------------------ End Input, intitate pre-processes ------------------------------------------------------------------------------------
+	'''
+	
+	zerofile=os.path.join(file_location,name_base+(str(zero_file)).zfill(4)+'_Lower.txt')
+	
+	StartOfCycles=np.arange(FirstMeasurementinFirstCycle,((NumberOfLoadSteps+GapMeasurement)*(NumberOfCycles-1))+FirstMeasurementinFirstCycle+1,NumberOfLoadSteps+1)
 
-	X1,Y1=np.meshgrid(highest_numbers,PlotLength)
-	Z1=np.array(DispDiffMeshStrain)
+	EndOfCycles=np.arange(LastMeasurementInFirstCycle,((NumberOfLoadSteps+GapMeasurement)*(NumberOfCycles-1))+LastMeasurementInFirstCycle+1,NumberOfLoadSteps+1)
+	
+	PlotCycles=np.arange(PlotCycle,((NumberOfLoadSteps+GapMeasurement)*(NumberOfCycles-1))+PlotCycle+1,NumberOfLoadSteps+1)
+
+	'''
+	----------------------------------------------------------------- End pre-processes, intitate modules for establishing dictionaries ------------------------------------------------------------------------------------
+	'''	
+	
+	allfilesdict=Measurement_Dictionary(NumberOfCycles,StartOfCycles,EndOfCycles,file_location,name_base,MaxDifferenceBetweenLoadSteps)
+	
+	allsummedfilesdict = Summed_Measurement_Dictionary(StartOfCycles,EndOfCycles,file_location,name_base)	
+	
+	Datafromzerofile=data_from_one_file(zerofile)
+	
+	TypicalLengthList=transform_dict_to_list(Datafromzerofile)
+	
+	'''
+	---------------------------------------------------------------------------- Established dictionary of all files ------------------------------------------------------------------------------------
+	'''		
+	
+	allfilesDispDiffDict, allfilesDispDiffDictNoise, allfilesDispDiffDictonlyNoise=Noise_Over_Load_Steps(NumberOfCycles,StartOfCycles,EndOfCycles,file_location,name_base,MaxDifferenceBetweenLoadSteps)
+	
+	allfilesNDiffDict, allfilesNDiffDictNoise, allfilesNDiffDictonlyNoise=Noise_Over_Cycles(NumberOfCycles,StartOfCycles,EndOfCycles,file_location,name_base,MaxDifferenceBetweenLoadSteps)	
+	
+	allfilesMDiffDict, allfilesMDiffDictNoise, allfilesMDiffDictonlyNoise=Noise_Over_One_Measurement(NumberOfCycles,StartOfCycles,EndOfCycles,file_location,name_base,MaxDifference)
+	
+	'''
+	------------------------------------------------------------ For this to work smoothly, the first cycle of measurements should be smoothed ------------------------------------------------------------------------------------
+	'''		
+	
+	#FirstMeasurement = SmoothenOverLength(allfilesdict,MeasurementsToSmoothen,allfilesMDiffDictonlyNoise)
+	
+	'''
+	--------------------------------------------------------------------- Established dictionary of what readings has noise ------------------------------------------------------------------------------------
+	'''	
+	
+	BinaryNoiseDict=Combined_Noise(allfilesNDiffDictonlyNoise,allfilesDispDiffDictonlyNoise,allfilesMDiffDictonlyNoise)
+
+	'''
+	--------------------------------------------------------------------------- Established dictionaries, intitate noise reduction ---------------------------------------------------------------------------------------
+	'''	
+	
+	allfilesnoisefree,allfileswithnoise=Reduce_Noise(BinaryNoiseDict,FirstMeasurementinFirstCycle,allfilesdict)
+	
+	'''
+	----------------------------------------------------------------------------------- End noise reduction, start plotting -------------------------------------------------------------------------------------------------------
+	'''
 	fig = plt.figure(figsize=plt.figaspect(0.5))
-	ax = fig.add_subplot(2, 2, 1, projection='3d')
 	
-	ax.plot_wireframe(X1, Y1, Z1)
+	PlotDict=PrepareDictionaryforPlotting(TypicalLengthList,PlotCycles,allfileswithnoise)
 	
+	X1,Y1=np.meshgrid(PlotCycles,PlotDict[1])
+	Z1=np.array(PlotDict[0])
+	ax = fig.add_subplot(1, 2, 1, projection='3d')
+	ax.plot_surface(X1, Y1, Z1,cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)	
 	
-	X2,Y2=np.meshgrid(highest_numbers,PlotLength)
-	Z2=np.array(NDiffMeshStrain)
-	#fig = plt.figure(figsize=plt.figaspect(0.5))
-	bx = fig.add_subplot(2, 2, 2, projection='3d')	
+	PlotDict=PrepareDictionaryforPlotting(TypicalLengthList,PlotCycles,allfilesnoisefree)
 	
-	bx.plot_wireframe(X2, Y2, Z2)
-	
-	X3,Y3=np.meshgrid(highest_numbers,PlotLength)
-	Z3=np.array(NDiffNoiseMeshStrain)
-	#fig = plt.figure(figsize=plt.figaspect(0.5))
-	cx = fig.add_subplot(2, 2, 4, projection='3d')	
-	
-	cx.plot_wireframe(X3, Y3, Z3)	
-	
-	X4,Y4=np.meshgrid(highest_numbers,PlotLength)
-	Z4=np.array(DispDiffNoiseMeshStrain)
-	#fig = plt.figure(figsize=plt.figaspect(0.5))
-	dx = fig.add_subplot(2, 2, 3, projection='3d')	
-	
-	dx.plot_wireframe(X4, Y4, Z4)		
+	X1,Y1=np.meshgrid(PlotCycles,PlotDict[1])
+	Z1=np.array(PlotDict[0])
+	ax = fig.add_subplot(1, 2, 2, projection='3d')	
+	ax.plot_surface(X1, Y1, Z1,cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)		
 	
 	plt.show()
-	
-	for d in start_heres:
-		for a in range(0,numberofmeasurements):
-			num=d+a
-			for key, value in allfilesdict[num].items():
-				if allfilesNDiffDictNoise[num][key]+allfilesDispDiffDictNoise[num][key]==2.0:
-					print (num,key,value)
-					
-
-		
-			
-		#old_file_name=name_base+(str(zero_file)).zfill(4)+'_Lower.txt'
-		
-		#new_file_name=name_base+(str(minimum_number-1)).zfill(4)+'_Lower.txt'
-	
-		##Copy the zeroreading file 
-		#if not os.path.isfile(os.path.join(file_location, new_file_name)): 
-			#with open(os.path.join(file_location, new_file_name), 'a') as f1: 
-				#for line in open(os.path.join(file_location, old_file_name)):
-					#f1.write(line)
-					
-					
-					
-	
-		#main(file_location, name_base, minimum_number, maximum_number, maximum_difference_between_points, maximum_difference_for_interpolation, maxallowedstrainincrease)
 
 
-
-
-
+	'''
+	------------------------------------------------------------------------------------------------- Ended plotting -------------------------------------------------------------------------------------------------------
+	'''
 
 
 
