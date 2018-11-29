@@ -12,7 +12,7 @@ startdistance=0.0 #mm
 length=120.0 #mm
 key='E10_fibre 1_'
 rdr=rdr()
-#Result=rdr.SeriesReader(location=r'C:\Users\eivinhug\NTNU\PhD\Testing\Laminate_D\OBR_Files\D01_Temsion_07062018',key=key,startdistance=startdistance,length=length)
+Result=rdr.SeriesReader(location=r'C:\Users\eivinhug\NTNU\PhD\Testing\Laminate_D\OBR_Files\D01_Temsion_07062018',key=key,startdistance=startdistance,length=length)
 path=r'C:\Users\eivinhug\OneDrive - NTNU\PhD_Backup\NTNU\PhD\Testing\Laminate_E\OBR_Files\E01_FatigueTest_2_28082018\Fiber_1_14_23__RunningRef'
 start=15
 stop=23
@@ -53,7 +53,7 @@ for t in range(len(Length)-1): #-1 to avoid number of datpoints issues.
     thefile.write("\n")    
 
 
-#ResultSmooth=rdr.Smoother(Result=Result[0],FiberNumbers=Result[1],Fibersforsmoothing=[9],algorithm='threshold')
+ResultSmooth=rdr.Smoother(Result=Result[0],FiberNumbers=Result[1],Fibersforsmoothing=[9],algorithm='threshold')
 #rdr.Plotter(Result=Result[0],FiberNumbers=Result[1])
 #rdr.Plotter(Result=ResultSmooth,FiberNumbers=Result[1])
 #rdr.ContourPlotter(Result=ResultSmooth,FiberNumbers=Result[1],FiberPositions=Result[2])

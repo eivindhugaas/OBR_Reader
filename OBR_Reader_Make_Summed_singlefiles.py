@@ -10,13 +10,17 @@ import os
 
 startdistance=0.0 #mm
 length=120.0 #mm
-prefix='E01_fibre 1_'
-path=r'C:\Users\eivinhug\OneDrive - NTNU\PhD_Backup\NTNU\PhD\Testing\Laminate_E\OBR_Files\E01_FatigueTest_2_28082018\RAW'
+prefix='E07_fibre 1_'
+path=r'C:\Users\eivinhug\OneDrive - NTNU\PhD\Testing\Laminate_E\OBR_Files\E07_Fatigue_14092018\RAW'
 rdr=rdr()
 
-highest_numbers=np.arange(13,174,10)
-start_heres=np.arange(5,166,10)
-zeroreading=4
+highest_numbers=np.arange(27,328,12)
+start_heres=np.arange(17,318,12)
+zeroreading=16
+
+print(highest_numbers)
+print(start_heres)
+
 
 load_file_number = str(zeroreading).zfill(4)
 file=prefix+load_file_number+'_Lower.txt'

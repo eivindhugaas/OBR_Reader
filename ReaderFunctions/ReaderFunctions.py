@@ -23,6 +23,7 @@ class readers:
         if isfile(location):
             f  = open(location, 'r') 
             lines=f.readlines()
+  
             length=[]
             strain=[]
             startappending=False

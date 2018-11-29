@@ -8,17 +8,17 @@ import sys
 from ReaderFunctions.ReaderFunctions import readers as rdr
 import os
 
-key='E01_fibre 1_'
+key='E07_fibre 2_'
 prefix=key
-path=r'C:\Users\eivinhug\OneDrive - NTNU\PhD_Backup\NTNU\PhD\Testing\Laminate_E\OBR_Files\E01_FatigueTest_2_28082018\RAW'
+path=r'C:\Users\eivinhug\OneDrive - NTNU\PhD\Testing\Laminate_E\OBR_Files\E07_Fatigue_14092018\Processesed'
 rdr=rdr()
 
-highest_numbers=np.arange(13,174,10)
-start_heres=np.arange(5,166,10)
-zeroreading=4
+start_heres=np.arange(17,318,12)
+highest_numbers=np.arange(27,328,12)
+zeroreading=17
 
 load_file_number = str(zeroreading).zfill(4)
-file=prefix+load_file_number+'_Lower.txt'
+file=prefix+load_file_number+'_Lower_Smooth.txt'
 doods=rdr.Lower_Reader(location='%s\%s' %(path, file))
 print(doods)
 PastStrain=doods[1]
@@ -34,7 +34,7 @@ for i in range(0,len(highest_numbers)):
 
     filename="Output_Summed_"+str(prefix)+str(start)+"_"+str(stop)+".txt"
     
-    print(path+filename)
+   
     
     thefile = open(os.path.join(path,filename), 'w')
     thefile.write("Length (m) \t") 
@@ -45,8 +45,10 @@ for i in range(0,len(highest_numbers)):
     Strain=[]
     for i in range(start,stop+1,1):
         load_file_number = str(i).zfill(4)
-        file=prefix+load_file_number+'_Lower.txt'
+        file=prefix+load_file_number+'_Lower_Smooth.txt'
+        print(file)
         dood=rdr.Lower_Reader(location='%s\%s' %(path, file))
+        print(dood)
         if i==start:
             Length=dood[0]
             AllStrain.append(Length)
@@ -54,7 +56,6 @@ for i in range(0,len(highest_numbers)):
         StrainSummed=[StrainSummed[a]+Strain[a] for a in range(len(Strain))]#[x + y for x, y in zip(Strain,PastStrain)]
         AllStrain.append(StrainSummed)
 
-    print(AllStrain)
     for t in range(len(Length)-1): #-1 to avoid number of datpoints issues.
         for d in range(len(AllStrain)):
             if AllStrain[d]==[]:

@@ -61,12 +61,14 @@ keyboard = PyKeyboard()
 
 
 
-highest_numbers=np.arange(13,174,10)
-start_heres=np.arange(5,166,10)
-analysis_time=2
-save_time=2
+highest_numbers=np.arange(27,329,12)
+start_heres=np.arange(16,317,12)
+
+analysis_time=5
+save_time=5
 RRef=True
-base_filename="E01_fibre 3_"
+base_filenames=["F_08_fibre 1_","F_08_fibre 2_","F_08_fibre 3_","F_08_fibre 4_"]
+#base_filename="F_08_fibre 1_"
 
 # Instructions for the user what to do, so that the program can determine the 
 # position of the <FILE> Button
@@ -113,145 +115,145 @@ print """\n
 
 # Wait here for the user to start the automatic measurements.
 raw_input('Press ENTER now to start the automatic measurements. >>>')
-
-
-for i in range(0,1000):
-	start_here=start_heres[i]
-	highest_number = highest_numbers[i]
+for base_filename in base_filenames:
 	
-	
-
-	
-	
-	# Give the user a summary of the input information.
-	print "\n-----------------------\n"
-	print "ATTENTION: DON'T MOVE THE WINDOW OF THE OBR-PROGRAM!\n"
-	print "Automated Measurements have started.\n"
-	print "Highest file number: %s" % highest_number
-	print "Starting with measurement: %s" % start_here
-	print "Base-filename: %s" % base_filename
-	print "\n-----------------------\n"
-	
-	
-	
-	
-	
-	## ## ## ## ## Here the analysis-loop starts ## ## ## ## ##
-	
-	counter = start_here - 1
-	
-	while counter < highest_number:
-		# Increase the file number counter
-		counter += 1
-	
-		# The numbering of the files should be with four leading zeros but counter 
-		# is just a regular number. 
-		# .zfill() puts leading zeros in front of a number. However, .zfill() can 
-		# be used just on a string. Thus I first convert the number to a string.
-		load_file_number = str(counter).zfill(4)
-		if RRef:
-			new_reference_file_number = str((counter - 1)).zfill(4)
-		elif not RRef:
-			print('hi')
-			new_reference_file_number = str((Refnum)).zfill(4)
-		print(new_reference_file_number)
-		# Make the correct filename, by concatenating the base-filename and
-		# the number for the measurement that is performed.
-		load_file = base_filename + load_file_number
-		new_reference_file = base_filename + new_reference_file_number
-		save_file_older_reference = load_file + '_older_reference'
-	
-	
-		# First of all I need to make the OBR measurement/analyze program
-		# the active window. I do this by simply clicking it at a position the 
-		# does not contain anything.
-		click(load_reference_button_position[0], load_reference_button_position[1])
-	
-	
-		# Load the new file to be analyzed.
-		# .press_key() is a method of a PyKeyboard-instance that presses and holds
-		# the given key and does NOT release it until release_key() is called.
-		# keyboard.control_l_key selects the left CTRL-key
-		keyboard.press_key(keyboard.control_l_key)
-		# .tap_key() taps the given key.
-		keyboard.tap_key('l')
-		# Don't forget to release the pressed CTR-key.
-		keyboard.release_key(keyboard.control_l_key)
-	
-		# I put in sleep() statements all over this loop to give the 
-		# analysis-PC some time to "settle" between commands.
-		sleep(0.2)
-	
-		keyboard.tap_key(keyboard.return_key)
-		sleep(0.2)
-		keyboard.tap_key('y')
-		sleep(0.2)
-		load_filetoluna=load_file + '.obr'
-		keyboard.type_string(load_filetoluna)
-		sleep(0.2)
-		keyboard.tap_key(keyboard.return_key)	
-		# It takes some time to analyze the file.
-		sleep(analysis_time)
-	
-		#if RRef:
-	
-			## Now save the file.
-			#keyboard.press_key(keyboard.control_l_key)
-			#keyboard.tap_key('s')
-			#keyboard.release_key(keyboard.control_l_key)
-			#sleep(1)
-			## This is the file analyzed with the "older" reference.
-			#keyboard.type_string(save_file_older_reference)
-			#sleep(1)
-			#keyboard.tap_key(keyboard.return_key)
-			#sleep(save_time)
-	
-	
-	
-		# Load the new reference (which will be the previous measurement file).
+	#for i in range(0,1000):
+		start_here= 1 #start_heres[i]
+		highest_number = 428 #highest_numbers[i]
 		
-		click(load_reference_button_position[0], load_reference_button_position[1])
 		
-		click(file_button_position[0], file_button_position[1])
-		sleep(0.2)
-		click(load_reference_button_position[0], load_reference_button_position[1])
-		keyboard.tap_key(keyboard.return_key)
-		sleep(0.2)
-		new_reference_filetoluna=new_reference_file + '.obr'
-		print(new_reference_filetoluna)
-		keyboard.type_string(new_reference_filetoluna)
-		sleep(0.2)
-		keyboard.tap_key(keyboard.return_key)	
-		sleep(0.2)
-		# When a reference file is loaded the OBR program opens a popup
-		# saying this to the user. It may take some time before this popup
-		# appears.
-		keyboard.tap_key(keyboard.return_key)
 	
-		# The loaded file will now be analyzed with the new reference.
-		sleep(analysis_time)
+		
+		
+		# Give the user a summary of the input information.
+		print "\n-----------------------\n"
+		print "ATTENTION: DON'T MOVE THE WINDOW OF THE OBR-PROGRAM!\n"
+		print "Automated Measurements have started.\n"
+		print "Highest file number: %s" % highest_number
+		print "Starting with measurement: %s" % start_here
+		print "Base-filename: %s" % base_filename
+		print "\n-----------------------\n"
+		
+		
+		
+		
+		
+		## ## ## ## ## Here the analysis-loop starts ## ## ## ## ##
+		
+		counter = start_here - 1
+		
+		while counter < highest_number:
+			# Increase the file number counter
+			counter += 1
+		
+			# The numbering of the files should be with four leading zeros but counter 
+			# is just a regular number. 
+			# .zfill() puts leading zeros in front of a number. However, .zfill() can 
+			# be used just on a string. Thus I first convert the number to a string.
+			load_file_number = str(counter).zfill(4)
+			if RRef:
+				new_reference_file_number = str((counter - 1)).zfill(4)
+			elif not RRef:
+				print('hi')
+				new_reference_file_number = str((Refnum)).zfill(4)
+			print(new_reference_file_number)
+			# Make the correct filename, by concatenating the base-filename and
+			# the number for the measurement that is performed.
+			load_file = base_filename + load_file_number
+			new_reference_file = base_filename + new_reference_file_number
+			save_file_older_reference = load_file + '_older_reference'
+		
+		
+			# First of all I need to make the OBR measurement/analyze program
+			# the active window. I do this by simply clicking it at a position the 
+			# does not contain anything.
+			click(load_reference_button_position[0], load_reference_button_position[1])
+		
+		
+			# Load the new file to be analyzed.
+			# .press_key() is a method of a PyKeyboard-instance that presses and holds
+			# the given key and does NOT release it until release_key() is called.
+			# keyboard.control_l_key selects the left CTRL-key
+			keyboard.press_key(keyboard.control_l_key)
+			# .tap_key() taps the given key.
+			keyboard.tap_key('l')
+			# Don't forget to release the pressed CTR-key.
+			keyboard.release_key(keyboard.control_l_key)
+		
+			# I put in sleep() statements all over this loop to give the 
+			# analysis-PC some time to "settle" between commands.
+			sleep(0.8)
+		
+			keyboard.tap_key(keyboard.return_key)
+			sleep(0.8)
+			keyboard.tap_key('y')
+			sleep(0.8)
+			load_filetoluna=load_file + '.obr'
+			keyboard.type_string(load_filetoluna)
+			sleep(0.8)
+			keyboard.tap_key(keyboard.return_key)	
+			# It takes some time to analyze the file.
+			sleep(analysis_time)
+		
+			#if RRef:
+		
+				## Now save the file.
+				#keyboard.press_key(keyboard.control_l_key)
+				#keyboard.tap_key('s')
+				#keyboard.release_key(keyboard.control_l_key)
+				#sleep(1)
+				## This is the file analyzed with the "older" reference.
+				#keyboard.type_string(save_file_older_reference)
+				#sleep(1)
+				#keyboard.tap_key(keyboard.return_key)
+				#sleep(save_time)
+		
+		
+		
+			# Load the new reference (which will be the previous measurement file).
+			
+			click(load_reference_button_position[0], load_reference_button_position[1])
+			
+			click(file_button_position[0], file_button_position[1])
+			sleep(0.8)
+			click(load_reference_button_position[0], load_reference_button_position[1])
+			keyboard.tap_key(keyboard.return_key)
+			sleep(0.8)
+			new_reference_filetoluna=new_reference_file + '.obr'
+			print(new_reference_filetoluna)
+			keyboard.type_string(new_reference_filetoluna)
+			sleep(0.8)
+			keyboard.tap_key(keyboard.return_key)	
+			sleep(0.8)
+			# When a reference file is loaded the OBR program opens a popup
+			# saying this to the user. It may take some time before this popup
+			# appears.
+			keyboard.tap_key(keyboard.return_key)
+		
+			# The loaded file will now be analyzed with the new reference.
+			sleep(analysis_time)
+		
+			# And save this file, too.
+			keyboard.press_key(keyboard.control_l_key)
+			keyboard.tap_key('s')
+			keyboard.release_key(keyboard.control_l_key)
+		
+			sleep(0.8)
+			keyboard.type_string(load_file)
+			sleep(0.8)
+			keyboard.tap_key(keyboard.return_key)
+			sleep(save_time)
+		
+			print "Analyzed %s" % load_file
+		
+			# To give the user some time to abort the program.
+			sleep(0.8)
 	
-		# And save this file, too.
-		keyboard.press_key(keyboard.control_l_key)
-		keyboard.tap_key('s')
-		keyboard.release_key(keyboard.control_l_key)
 	
-		sleep(0.2)
-		keyboard.type_string(load_file)
-		sleep(0.2)
-		keyboard.tap_key(keyboard.return_key)
-		sleep(save_time)
 	
-		print "Analyzed %s" % load_file
 	
-		# To give the user some time to abort the program.
-		sleep(0.2)
-
-
-
-
-
-
-
+	
+	
+	
 
 
