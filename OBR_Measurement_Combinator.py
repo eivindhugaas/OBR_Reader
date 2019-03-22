@@ -57,13 +57,11 @@ if __name__ == '__main__':
 	
 	base_location=r'C:\Users\eivinhug\OneDrive - NTNU\PhD\Testing\Laminate_F\OBR_Files\F08_Fatigue_25102018'
 
-	file_location5 = os.path.join(base_location,'RAW_L1')
-	file_location6 = os.path.join(base_location,'RAW_L2')
 	metadatadict=smth.metadatadict(metafile=os.path.join(base_location,'F08_MeasurementMetadata.txt'))
 	referencemeta=smth.referencemetadatalist(metafile=os.path.join(base_location,'F08_ReferenceMetadata.txt'))
 	print(referencemeta)
 	dumplocation=os.path.join(base_location,'dictdump_2')
-	plotdisp=3.3
+	plotdisp=1.8
 	
 	measurements,cycles=smth.numberandcyclesfromdisplist(disp=plotdisp,metadatadict=metadatadict)
 	
@@ -102,13 +100,15 @@ if __name__ == '__main__':
 				for ref in referencemeta:
 					if Fibernumber==ref[1]:
 						refl=ref[2]
-						reflength=smth.find_nearest(Data=straindata, X_Value_To_Be_Found=refl)
+						reflength=smth.find_nearest(datadict=straindata, X_Value_To_Be_Found=refl)
 				reflengthdict[measurement][Fibernumber]=straindata[reflength]
 				
 	print(reflengthdict)
-	print(maxdict)
+	print("maxdict",maxdict)
 	fig = plt.figure(figsize=plt.figaspect(0.5))
-
+	
+	#self,lengthlist=[],measurements=[],dictionary={},plotvalue=1.8,newdict={}
+	
 	plotdict3=smth.preparedictforplotting(lengthlist=Fibernumbers,measurements=measurements,dictionary=maxdict)
 
 	X1,Y1=np.meshgrid(cycles,RefPos)

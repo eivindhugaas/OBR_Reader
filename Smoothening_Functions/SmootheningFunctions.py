@@ -155,6 +155,7 @@ class smoothening:
         data_is_here = False
         # Open the file with the data ...
         with open(In_File, 'r') as f:
+
             # ... scan through it line for line ...
             for line in f:
                 # ... and if data_is_here is set to True ...
@@ -165,6 +166,7 @@ class smoothening:
                     # both will be strings and NOT numbers), ...
                     raw = line.strip().split('\t')
                     # ... convert the strings to numbers, ...
+                    
                     a = float(raw[0])
                     b = float(raw[1])
                     # ... create a tuple with these numbers ...
@@ -201,7 +203,7 @@ class smoothening:
 
         for Measurement, Data in Dict_to_write.items():
             
-            Write_file=os.path.join(Write_Location,Name_Base+(str(Measurement)).zfill(4)+'_Lower_Smooth.txt')
+            Write_file=os.path.join(Write_Location,Name_Base+'_'+(str(Measurement)).split('.')[0]+'_'+(str(Measurement)).split('.')[1]+'.txt')
      
             if not os.path.exists(os.path.dirname(Write_file)):
                 os.makedirs(os.path.dirname(Write_file))
@@ -870,7 +872,7 @@ class smoothening:
         without_noise = []
 
         if type(original_data) is dict:
-            original_data=transform_dict_to_list(original_data)	
+            original_data=smoothening.transform_dict_to_list(original_data)	
 
         for x, y in original_data:
             with_noise.append(y)
@@ -1390,7 +1392,6 @@ class smoothening:
                 
                 nearestpastvalue=min(pastsortedvalues, key=lambda x:abs(float(x)-float(value)))
                 
-                print(nearestpastvalue)
 
                 currentmeasurement=deepcopy(dictionary[cycle][value])
                 pastmeasurement=deepcopy(dictionary[pastcycle][nearestpastvalue])
@@ -1484,7 +1485,7 @@ class smoothening:
     def interpolatetovalue(self,dictionary={},values=[],function='linear',onlyreturnthevalues=False):
         interpoldict=defaultdict(dict)
         for cycle,ramp in dictionary.items(): #goes through one ramping aka one set of values (disp or load)
-            print(cycle)
+
             slist=[]
             llist=[]
             vlist=list(ramp.keys())
@@ -1545,7 +1546,7 @@ class smoothening:
         cclist=[]
         sslist=[]
         for cycle,ramp in dictionary.items(): #goes through one ramping aka one set of values (disp or load)
-            print(cycle)
+
             slist=[]
             llist=[]
             clist=[]
@@ -1696,9 +1697,9 @@ class smoothening:
                     # both will be strings and NOT numbers), ...
                     raw = line.strip().split('\t')
                     # ... convert the strings to numbers, ...
-                  
-                    a = int(raw[0]) #measurement nr.
                     
+                    a = int(raw[0]) #measurement nr.
+                    print(a)
                     b = float(raw[1]) #load or displacement (value)
                
                     c = int(raw[2]) #Cycle
@@ -1733,10 +1734,15 @@ class smoothening:
         onlyfiles = [f for f in listdir(File_Location) if isfile(join(File_Location, f))]
         allfilesdict={}
         for file in onlyfiles:
-            if File_Name_Base in file and "Lower.txt" in file:
+            if File_Name_Base and 'Lower.txt' in file:
                 d=float(file.split('_')[-2])
                 onefiledict=smoothening().data_from_one_file(In_File=join(File_Location, file)) 
-                allfilesdict[d] = onefiledict			
+                allfilesdict[d] = onefiledict	            
+            elif File_Name_Base in file:
+                d=float((file.split('_')[-1]).split('.')[0])
+                onefiledict=smoothening().data_from_one_file(In_File=join(File_Location, file)) 
+                allfilesdict[d] = onefiledict	
+            
         return deepcopy(allfilesdict)
 
     def summedmeasurementfiles(self,Start_Of_Cycles=[],End_Of_Cycles=[],File_Location='',Name_Base=''):
@@ -1760,10 +1766,12 @@ class smoothening:
 
         data=deepcopy(dictionary)
         summedfile=defaultdict(dict)
+        deliveredsummedfile=defaultdict(dict)
         sumlist=[]
        
         
         measurements, values, cycles, comments, references =map(list, zip(*metadata))
+        #lengths=list(data[cycles[0]][values[1]].keys())
         lengths=list(data[cycles[4]][values[4]].keys())
         pastcycle=10000000000000000000000000000000000000000
         
@@ -1776,7 +1784,7 @@ class smoothening:
             reference=references[i]
             firsttime=True
             pastvalue=1000000000000000000
-            
+            print(cycle)
             if value!=pastvalue: #OK, so if cycle flips into a new ramp/new cycle, then 0 the summedstrain.
                 firsttime=True            
             
@@ -1796,13 +1804,16 @@ class smoothening:
             for t in range(len(summedstrain)):
                 if firsttime: #if its the firsttime in the ramp, then initiate the dictionary at that cycle and that value
                     summedfile[cycle][value]={}
-                    
+                if firsttime and comment!='Skip':
+                    deliveredsummedfile[cycle][value]={}
                 summedfile[cycle][value][lengths[t]]=summedstrain[t]
-        
+                if comment!='Skip':
+                    deliveredsummedfile[cycle][value][lengths[t]]=summedstrain[t]
+                
                 firsttime=False
             pastcycle=cycle
             pastvalue=value
-        return deepcopy(summedfile)
+        return deepcopy(deliveredsummedfile)
 
     def summedmeasurementdictionary2(self,dictionary={},metadict={},runningrefmeasurement=False,firstrunningrefmeasurement=2):
 
@@ -1860,6 +1871,7 @@ class smoothening:
     
                     mlist.append(value)
                     llist.append(length)
+                    print(llist)
                     slist.append(strain)
                     x, y = np.array(llist),np.array(slist)
     
